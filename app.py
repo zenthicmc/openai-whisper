@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from transcriber import transcribe_tiktok
+from sse_starlette.sse import EventSourceResponse
+from transcriber import stream_transcribe_tiktok
 
 app = FastAPI()
 
@@ -8,9 +9,13 @@ class Request(BaseModel):
     url: str
 
 @app.post("/transcribe")
-def transcribe(req: Request):
-    result = transcribe_tiktok(req.url)
-    return {
-        "status": "success",
-        "data": result
-    }
+async def transcribe_stream(req: Request):
+
+    async def event_generator():
+        for chunk in stream_transcribe_tiktok(req.url):
+            yield {
+                "event": "message",
+                "data": chunk
+            }
+
+    return EventSourceResponse(event_generator())
