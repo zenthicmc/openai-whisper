@@ -1,0 +1,26 @@
+[Unit]
+Description=Whisper Transcription API
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/openai-whisper
+ExecStart=/usr/bin/python3 -m uvicorn app:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=5
+
+# Environment variables (sesuaikan jika perlu)
+Environment=WHISPER_MODEL_SIZE=small
+Environment=WHISPER_COMPUTE_TYPE=int8
+Environment=MAX_CONCURRENT_TRANSCRIPTIONS=5
+Environment=MAX_QUEUE_SIZE=20
+Environment=DOWNLOAD_TIMEOUT_SECONDS=120
+Environment=LOG_LEVEL=INFO
+
+# Logging ke journalctl
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
