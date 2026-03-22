@@ -1,4 +1,5 @@
 import subprocess
+import io
 from faster_whisper import WhisperModel
 
 MODEL_SIZE = "small"
@@ -38,7 +39,12 @@ def stream_transcribe_tiktok(url):
         stderr=subprocess.DEVNULL
     )
 
-    segments, info = model.transcribe(ffmpeg.stdout)
+    # 🔥 baca semua ke memory buffer
+    audio_bytes = ffmpeg.stdout.read()
+
+    audio_buffer = io.BytesIO(audio_bytes)
+
+    segments, info = model.transcribe(audio_buffer)
 
     for segment in segments:
         yield {
