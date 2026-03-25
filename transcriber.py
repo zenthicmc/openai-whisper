@@ -58,13 +58,22 @@ async def stream_transcribe(url: str, request_id: str = None) -> AsyncGenerator[
     - error:      { code, message, request_id }
     """
     import time
+    import re
 
     if not request_id:
         request_id = str(uuid.uuid4())[:8]
 
+    # Strip tracking parameters dari URL YouTube (?si=, &si=)
+    url = re.sub(r'[?&]si=[^&]+', '', url).rstrip('?&')
+
     uid = str(uuid.uuid4())
     audio_path = f"/tmp/whisper_{uid}.wav"
     start_time = time.time()
+
+    # Gunakan path absolut yt-dlp dari venv agar berjalan benar di PM2
+    YTDLP_BIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), "venv/bin/yt-dlp")
+    if not os.path.exists(YTDLP_BIN):
+        YTDLP_BIN = "yt-dlp"  # fallback ke system yt-dlp
 
     def _status(step: int, stage: str, message: str, progress_pct: int = 0):
         return {
@@ -97,8 +106,11 @@ async def stream_transcribe(url: str, request_id: str = None) -> AsyncGenerator[
         cookies_part = f'--cookies "{COOKIES_PATH}"' if COOKIES_PATH else ""
 
         cmd = (
-            f'yt-dlp {cookies_part} --no-js-runtimes --js-runtimes node '
-            f'-f "bestaudio/best" --no-warnings --no-progress -o - "{url}" | '
+            f'"{YTDLP_BIN}" {cookies_part} '
+            f'--no-js-runtimes --js-runtimes node '
+            f'--extractor-args "youtube:player_client=web" '
+            f'-f "140-1/251-1/bestaudio/best" '
+            f'--no-warnings --no-progress -o - "{url}" | '
             f'ffmpeg -nostdin -y -i pipe:0 -vn -f wav -acodec pcm_s16le -ar 16000 -ac 1 '
             f'{audio_path} 2>/dev/null'
         )
