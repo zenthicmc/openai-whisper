@@ -96,8 +96,11 @@ async def stream_transcribe(url: str, request_id: str = None) -> AsyncGenerator[
         # --- Step 2: Download + convert to WAV ---
         cookies_part = f'--cookies "{COOKIES_PATH}"' if COOKIES_PATH else ""
 
+        # Added extractor args to bypass YouTube bot checks while maintaining cookie support
+        extractor_args = '--extractor-args "youtube:player_client=ios,default"'
+        
         cmd = (
-            f'yt-dlp {cookies_part} -f "bestaudio/best" --no-warnings --no-progress -o - "{url}" | '
+            f'yt-dlp {cookies_part} {extractor_args} -f "bestaudio/best" --no-warnings --no-progress -o - "{url}" | '
             f'ffmpeg -nostdin -y -i pipe:0 -vn -f wav -acodec pcm_s16le -ar 16000 -ac 1 '
             f'{audio_path} 2>/dev/null'
         )
