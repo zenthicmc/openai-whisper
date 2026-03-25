@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 MODEL_SIZE = os.getenv("WHISPER_MODEL_SIZE", "small")
 COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
 DOWNLOAD_TIMEOUT = int(os.getenv("DOWNLOAD_TIMEOUT_SECONDS", "120"))
+COOKIES_PATH = os.getenv("YTDLP_COOKIES")
 
 # --- Lazy-loaded Whisper model (singleton) ---
 _model = None
@@ -93,8 +94,10 @@ async def stream_transcribe(url: str, request_id: str = None) -> AsyncGenerator[
         yield _status(1, "connecting", "Connecting to video source...", 5)
 
         # --- Step 2: Download + convert to WAV ---
+        cookies_part = f'--cookies "{COOKIES_PATH}"' if COOKIES_PATH else ""
+
         cmd = (
-            f'yt-dlp -f "bestaudio/best" --no-warnings --no-progress -o - "{url}" | '
+            f'yt-dlp {cookies_part} -f "bestaudio/best" --no-warnings --no-progress -o - "{url}" | '
             f'ffmpeg -nostdin -y -i pipe:0 -vn -f wav -acodec pcm_s16le -ar 16000 -ac 1 '
             f'{audio_path} 2>/dev/null'
         )

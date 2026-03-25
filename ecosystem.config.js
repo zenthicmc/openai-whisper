@@ -23,6 +23,8 @@ module.exports = {
 
         DOWNLOAD_TIMEOUT_SECONDS: "120",
         LOG_LEVEL: "INFO",
+
+        YTDLP_COOKIES: "/var/www/openai-whisper/cookies.txt"
       },
     },
   ],
