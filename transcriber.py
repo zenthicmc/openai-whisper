@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 # --- Configuration via environment variables ---
 MODEL_SIZE = os.getenv("WHISPER_MODEL_SIZE", "small")
-COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "fp32")
+COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
 DOWNLOAD_TIMEOUT = int(os.getenv("DOWNLOAD_TIMEOUT_SECONDS", "120"))
 COOKIES_PATH = os.getenv("YTDLP_COOKIES")
 
